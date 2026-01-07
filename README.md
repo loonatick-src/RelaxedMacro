@@ -105,6 +105,7 @@ Arithmetic expressions inside function calls are also transformed:
 // Expands to: f(Relaxed.sum(a, b), Relaxed.product(c, d))
 ```
 
+
 ## Why Use Relaxed Operations?
 
 Standard IEEE 754 floating-point arithmetic requires strict ordering of operations, which can prevent certain compiler optimizations. Relaxed operations tell the compiler it's okay to:
@@ -114,6 +115,32 @@ Standard IEEE 754 floating-point arithmetic requires strict ordering of operatio
 - Use fused multiply-add (FMA) instructions
 
 This can lead to significant performance improvements in numerical code, especially in tight loops and vector operations.
+
+Consider the following example.
+
+```
+import Relaxed
+
+public func f1(_ a: Float, _ b: Float, _ c: Float) -> Float {
+    #relaxed(a * b + c)
+}
+
+public func f2(_ a: Float, _ b: Float, _ c: Float) -> Float {
+    a * b + c
+}
+```
+
+This is the generated code on an ARMv8-A machine when the `fmadd` is available.
+```
+<_$s14RelaxedExample2f2yS2f_S2ftF>:
+fmul    s0, s0, s1
+fadd    s0, s0, s2
+ret
+
+<_$s14RelaxedExample2f1yS2f_S2ftF>:
+fmadd   s0, s0, s1, s2
+ret
+```
 
 ## License
 
