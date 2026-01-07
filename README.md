@@ -29,7 +29,7 @@ Then add it as a dependency to your target:
 
 ## Usage
 
-Import the module and wrap arithmetic expressions with the `#relaxed` macro:
+Import the module and wrap floating point arithmetic expressions with the `#relaxed` macro:
 
 ```swift
 import Relaxed
@@ -45,6 +45,46 @@ let x2 = #relaxed(a * b / c)
 let x3 = #relaxed(sin(a + b * c))
 // Expands to: sin(Relaxed.sum(a, Relaxed.product(b, c)))
 ```
+
+## Performance Implications
+We benchmark the following two functions on an array of 10 million elements. One uses relaxed binary operators, the other does not.
+```swift
+@inlinable
+func saxpyFoldRelaxed(_ x: [Float], _ y: [Float], _ a: Float) -> Float {
+    precondition(x.count == y.count)
+    var result: Float = 0
+    for i in x.indices {
+        result = #relaxed(result + a * x[i] + y[i])
+    }
+    return result
+}
+
+@inlinable
+func saxpyFold(_ x: [Float], _ y: [Float], _ a: Float) -> Float {
+    precondition(x.count == y.count)
+    var result: Float = 0
+    for i in x.indices {
+        result += a * x[i] + y[i]
+    }
+    return result
+}
+```
+
+Benchmark result (M3Max MacBook Pro):
+
+```
+saxpyFold (standard):
+  Mean:   7.292 ms
+  Stddev: 0.478 ms
+  Result: -1883.6713 (to prevent optimization)
+
+saxpyFoldRelaxed:
+  Mean:   2.254 ms
+  Stddev: 0.037 ms
+  Result: -1883.678 (to prevent optimization)
+```
+
+~3.2x speedup, with the result matching up to two decimal places for this particular randomly generated input.
 
 ## Supported Operators
 
@@ -118,7 +158,7 @@ This can lead to significant performance improvements in numerical code, especia
 
 Consider the following example.
 
-```
+```swift
 import Relaxed
 
 public func f1(_ a: Float, _ b: Float, _ c: Float) -> Float {
