@@ -54,7 +54,7 @@ func saxpyFoldRelaxed(_ x: [Float], _ y: [Float], _ a: Float) -> Float {
     precondition(x.count == y.count)
     var result: Float = 0
     for i in x.indices {
-        result = #relaxed(result + a * x[i] + y[i])
+        #relaxed(result += a * x[i] + y[i])
     }
     return result
 }
@@ -73,18 +73,69 @@ func saxpyFold(_ x: [Float], _ y: [Float], _ a: Float) -> Float {
 Benchmark result (M3Max MacBook Pro):
 
 ```
-saxpyFold (standard):
-  Mean:   7.292 ms
-  Stddev: 0.478 ms
-  Result: -1883.6713 (to prevent optimization)
+saxpyFold:
+  Mean:   7.835 ms
+  Stddev: 0.744 ms
+  Result: 641.4162
 
 saxpyFoldRelaxed:
-  Mean:   2.254 ms
-  Stddev: 0.037 ms
-  Result: -1883.678 (to prevent optimization)
+  Mean:   0.994 ms
+  Stddev: 0.017 ms
+  Result: 641.35
 ```
 
-~3.2x speedup, with the result matching up to two decimal places for this particular randomly generated input.
+~7.8x speedup, with the result matching up to two decimal places for this particular randomly generated input.
+Why does this happen? Consider the primary loop within the generated code for both of those functions.
+
+```
+;; saxpyFoldRelaxed
+vloop:
+ldp     q4, q5, [x10, #-0x10]
+ldp     q6, q7, [x11, #-0x10]
+fmla.4s v6, v1, v4            ;; vectorized fused multiply add (FMA)
+fmla.4s v7, v1, v5            ;; vectorized FMA
+fadd.4s v2, v2, v6
+fadd.4s v3, v3, v7
+add     x10, x10, #0x20
+add     x11, x11, #0x20
+subs    x12, x12, #0x8
+b.ne    vloop
+```
+
+```
+;; saxpyFold
+loop:
+ldp     q2, q3, [x10, #-0x10]
+fmul.4s v2, v2, v0[0]         ;; no FMAs
+fmul.4s v3, v3, v0[0]
+ldp     q4, q5, [x11, #-0x10]
+fadd.4s v2, v2, v4
+mov     s4, v2[3]
+mov     s6, v2[2]
+mov     s7, v2[1]
+fadd.4s v3, v3, v5
+mov     s5, v3[3]
+mov     s16, v3[2]
+mov     s17, v3[1]
+fadd    s1, s1, s2            ;; horizontal add (∵ reassociation forbidden)
+fadd    s1, s1, s7
+fadd    s1, s1, s6
+fadd    s1, s1, s4
+fadd    s1, s1, s3
+fadd    s1, s1, s17
+fadd    s1, s1, s16
+fadd    s1, s1, s5
+add     x10, x10, #0x20
+add     x11, x11, #0x20
+subs    x12, x12, #0x8
+b.ne    loop
+```
+
+SIMD instructions `fmul.4s` and `fadd.4s` can be seen in the codegen of `saxpyFold` (i.e. without relaxed operations), but
+immediately afterwards it performs individual scalar additions
+([horizontal adds](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=AVX_512&text=_mm512_reduce_add_ps&ig_expand=5303)).
+The implementation using relaxed operations lowers to FMA instructions where possible, and the horizontal add is moved outside the loop (not shown in the codegen)
+
 
 ## Supported Operators
 
