@@ -6,17 +6,22 @@ A Swift macro that transforms arithmetic expressions to use relaxed floating-poi
 
 The `#relaxed` macro rewrites binary arithmetic operators to use `Relaxed.sum` and `Relaxed.product`, enabling more aggressive compiler optimizations. Relaxed operations allow the compiler to reorder and reassociate floating-point operations, which can improve performance but may produce slightly different results due to floating-point semantics.
 
-## Installation
+## Usage
 
-**TODO:** Cut a release tag. This will not work at the moment.
-
-Add Relaxed to your `Package.swift`:
+Add `RelaxedMacros` to your `Package.swift` (**TODO:** cut a release tag)
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/loonatick-src/RelaxedMacros.git", from: "1.0.0")
+    .package(url: "https://github.com/loonatick-src/RelaxedMacros.git", branch: "main")
 ]
 ```
+or to use a specific commit
+```swift
+dependencies: [
+    .package(url: "https://github.com/loonatick-src/RelaxedMacros.git", revision: "1bfad5b375fc46755f71c99ee39808a04f12f63a")
+]
+```
+
 
 Then add it as a dependency to your target:
 
@@ -26,8 +31,6 @@ Then add it as a dependency to your target:
     dependencies: ["Relaxed"]
 )
 ```
-
-## Usage
 
 Import the module and wrap floating point arithmetic expressions with the `#relaxed` macro:
 
