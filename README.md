@@ -256,8 +256,11 @@ Arithmetic expressions inside function calls are also transformed:
 
 
 ## Wishlist/Near-Term Future Work
-1. Support for `+=`, `-=`, `*=`
-2. Rewrite references to operators, e.g. `array.reduce(0, +)` to `array.reduce(0, Relaxed.sum)` 
+Evaluate the sanity and feasibility of and/or implement the following.
+1. [X] Support for `+=`, `-=`, `*=`
+2. [ ] Rewrite references to operators, e.g.
+   - `array.reduce(0, +)` to `array.reduce(0, Relaxed.sum)`
+   - `zip(xs, ys).map(*).reduce(0, +)` to `zip(xs, ys).map(Relaxed.product).reduce(0, Relaxed.sum)`
 
 ## License
 
