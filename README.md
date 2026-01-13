@@ -122,7 +122,7 @@ saxpyFoldRelaxed:
   Result: 641.35
 ```
 
-~7.8x speedup, with the result matching up to two decimal places for this particular randomly generated input.
+**~7.8x speedup**, with the result matching up to two decimal places for this particular randomly generated input.
 Why does this happen? Consider the primary loop within the generated code for both of those functions.
 
 
@@ -186,8 +186,9 @@ Two important differences from the previous codegen.
 
 See also the equivalent x86-64 simulation: [link](https://uica.uops.info/?code=%23%20Register%20mapping%3A%0D%0A%20%20%23%20xmm0%20%3D%20a%20(broadcast%20to%20all%20lanes)%0D%0A%20%20%23%20rdi%20%3D%20x%20array%20pointer%0D%0A%20%20%23%20rsi%20%3D%20y%20array%20pointer%0D%0A%20%20%23%20rcx%20%3D%20loop%20counter%0D%0A%20%20%23%20xmm2%2C%20xmm3%20%3D%20vector%20accumulators%0D%0A%0D%0A%20%20.vloop%3A%0D%0A%20%20%20%20%20%20vmovups%20xmm4%2C%20%5Brdi%5D%20%20%20%20%20%20%20%20%20%20%20%23%20x%5Bi%3Ai%2B4%5D%0D%0A%20%20%20%20%20%20vmovups%20xmm5%2C%20%5Brdi%2B16%5D%20%20%20%20%20%20%20%20%23%20x%5Bi%2B4%3Ai%2B8%5D%0D%0A%20%20%20%20%20%20vmovups%20xmm6%2C%20%5Brsi%5D%20%20%20%20%20%20%20%20%20%20%20%23%20y%5Bi%3Ai%2B4%5D%0D%0A%20%20%20%20%20%20vmovups%20xmm7%2C%20%5Brsi%2B16%5D%20%20%20%20%20%20%20%20%23%20y%5Bi%2B4%3Ai%2B8%5D%0D%0A%20%20%20%20%20%20vfmadd231ps%20xmm6%2C%20xmm0%2C%20xmm4%20%20%23%20v6%20%3D%20a%20*%20x%5Bi%3Ai%2B4%5D%20%2B%20y%5Bi%3Ai%2B4%5D%0D%0A%20%20%20%20%20%20vfmadd231ps%20xmm7%2C%20xmm0%2C%20xmm5%20%20%23%20v7%20%3D%20a%20*%20x%5Bi%2B4%3Ai%2B8%5D%20%2B%20y%5Bi%2B4%3Ai%2B8%5D%0D%0A%20%20%20%20%20%20vaddps%20%20xmm2%2C%20xmm2%2C%20xmm6%20%20%20%20%20%20%23%20acc1%20%2B%3D%20v6%0D%0A%20%20%20%20%20%20vaddps%20%20xmm3%2C%20xmm3%2C%20xmm7%20%20%20%20%20%20%23%20acc2%20%2B%3D%20v7%0D%0A%20%20%20%20%20%20add%20%20%20%20%20rdi%2C%2032%0D%0A%20%20%20%20%20%20add%20%20%20%20%20rsi%2C%2032%0D%0A%20%20%20%20%20%20sub%20%20%20%20%20rcx%2C%208%0D%0A%20%20%20%20%20%20jne%20%20%20%20%20.vloop%0D%0A%20%20%20%20%20%20%23%20result%20%3D%20hsum(xmm2)%20%2B%20hsum(xmm3)%20after%20loop&syntax=asIntel&uArchs=RKL&tools=uiCA&alignment=0&uiCAHtmlOptions=traceTable).
 
-
+Execution trace of implementation without relaxed operations:
 <img width="1378" height="923" alt="image" src="https://github.com/user-attachments/assets/60c754cc-476d-4ede-8879-b7f5dcc2551e" />
+Execution trace of implementation using relaxed operations:
 <img width="2766" height="1202" alt="image" src="https://github.com/user-attachments/assets/e96cad95-a5ff-45f4-984c-630db8dfc4cb" />
 
 
