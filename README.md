@@ -8,20 +8,13 @@ The `#relaxed` macro rewrites binary arithmetic operators to use `Relaxed.sum` a
 
 ## Usage
 
-Add `RelaxedMacros` to your `Package.swift` (**TODO:** cut a release tag)
+Add `RelaxedMacros` to your `Package.swift`
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/loonatick-src/RelaxedMacros.git", branch: "main")
+    .package(url: "https://github.com/loonatick-src/Relaxed.git", from: "0.1.0")
 ]
 ```
-or to use a specific commit
-```swift
-dependencies: [
-    .package(url: "https://github.com/loonatick-src/RelaxedMacros.git", revision: "1bfad5b375fc46755f71c99ee39808a04f12f63a")
-]
-```
-
 
 Then add it as a dependency to your target:
 
