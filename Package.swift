@@ -13,7 +13,7 @@ let package = Package(
             targets: ["RelaxedMacro"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-numerics", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-numerics", from: "1.1.0"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "600.0.0"..<"602.0.0"),
     ],
     targets: [
